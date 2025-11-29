@@ -30,6 +30,7 @@ namespace SurfaceNets2D
         [SerializeField] private bool animateVectors = true;
         [SerializeField] private float animationSpeed = 2f;
         [SerializeField] private float minimumScale = 0.2f;
+        [SerializeField] private float signEpsilon = 0.0001f;
 
         private void OnValidate()
         {
@@ -47,6 +48,7 @@ namespace SurfaceNets2D
             arrowHeadLength = Mathf.Max(0.001f, arrowHeadLength);
             animationSpeed = Mathf.Max(0f, animationSpeed);
             minimumScale = Mathf.Clamp01(minimumScale);
+            signEpsilon = Mathf.Max(0f, signEpsilon);
         }
 
         private void OnDrawGizmos()
@@ -80,7 +82,7 @@ namespace SurfaceNets2D
             Vector3 zOffset = new Vector3(0f, 0f, vectorZOffset);
             float animationScale = GetAnimationScale();
 
-            foreach (Vector2Int sample in EnumerateSamples())
+            foreach (Vector2Int sample in EnumerateRelevantSamples())
             {
                 float sdfValue = sdfField.GetSdfValue(sample.x, sample.y);
                 Vector3 start = config.GetPointPosition(sample.x, sample.y) + zOffset;
@@ -96,7 +98,18 @@ namespace SurfaceNets2D
             }
         }
 
-        private IEnumerable<Vector2Int> EnumerateSamples()
+        private IEnumerable<Vector2Int> EnumerateRelevantSamples()
+        {
+            foreach (Vector2Int sample in EnumerateSelectedSamples())
+            {
+                if (IsOnSignChange(sample.x, sample.y))
+                {
+                    yield return sample;
+                }
+            }
+        }
+
+        private IEnumerable<Vector2Int> EnumerateSelectedSamples()
         {
             if (drawAllSamples || highlightedSamples == null || highlightedSamples.Length == 0)
             {
@@ -120,6 +133,48 @@ namespace SurfaceNets2D
 
                 yield return sample;
             }
+        }
+
+        private bool IsOnSignChange(int x, int y)
+        {
+            int sign = GetSignCategory(sdfField.GetSdfValue(x, y));
+
+            bool HasNeighborSignChange(int nx, int ny)
+            {
+                if (nx < 0 || ny < 0 || nx > config.GridWidth || ny > config.GridHeight)
+                {
+                    return false;
+                }
+
+                int neighborSign = GetSignCategory(sdfField.GetSdfValue(nx, ny));
+
+                if (neighborSign == 0 && sign == 0)
+                {
+                    return false;
+                }
+
+                return neighborSign != sign;
+            }
+
+            return HasNeighborSignChange(x + 1, y)
+                || HasNeighborSignChange(x - 1, y)
+                || HasNeighborSignChange(x, y + 1)
+                || HasNeighborSignChange(x, y - 1);
+        }
+
+        private int GetSignCategory(float value)
+        {
+            if (value > signEpsilon)
+            {
+                return 1;
+            }
+
+            if (value < -signEpsilon)
+            {
+                return -1;
+            }
+
+            return 0;
         }
 
         private void DrawArrow(Vector3 start, Vector3 vector)
