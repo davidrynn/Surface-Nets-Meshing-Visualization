@@ -27,10 +27,17 @@ namespace SurfaceNets2D
 
         private void OnDrawGizmosSelected()
         {
+            // Keep visualization locked to the XY plane for 2D scenes.
             Gizmos.color = gizmoColor;
-            Gizmos.DrawWireSphere(center, radius);
-
             Vector3 center3D = new Vector3(center.x, center.y, 0f);
+
+#if UNITY_EDITOR
+            UnityEditor.Handles.color = gizmoColor;
+            UnityEditor.Handles.DrawWireDisc(center3D, Vector3.forward, radius);
+#else
+            Gizmos.DrawWireSphere(center3D, radius);
+#endif
+
             const float crossSize = 0.1f;
             Gizmos.DrawLine(center3D + Vector3.left * crossSize, center3D + Vector3.right * crossSize);
             Gizmos.DrawLine(center3D + Vector3.up * crossSize, center3D + Vector3.down * crossSize);
