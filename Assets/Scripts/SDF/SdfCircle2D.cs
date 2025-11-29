@@ -25,6 +25,26 @@ namespace SurfaceNets2D
             return (point - center).magnitude - radius;
         }
 
+        /// <summary>
+        /// Returns a 2D vector that points from the sample point toward the circle surface.
+        /// The vector length matches the absolute signed distance magnitude.
+        /// </summary>
+        public Vector2 GetVectorToSurface(Vector2 point, float sdfValue)
+        {
+            Vector2 direction = point - center;
+
+            if (direction.sqrMagnitude <= Mathf.Epsilon)
+            {
+                return Vector2.zero;
+            }
+
+            direction.Normalize();
+            float magnitude = Mathf.Abs(sdfValue);
+            float sign = sdfValue >= 0f ? -1f : 1f;
+
+            return direction * magnitude * sign;
+        }
+
         private void OnDrawGizmosSelected()
         {
             // Keep visualization locked to the XY plane for 2D scenes.

@@ -19,6 +19,8 @@ namespace SurfaceNets2D
         private float[,] sdfValues;
 
         public float[,] SdfValues => sdfValues;
+        public SdfShape SelectedShape => selectedShape;
+        public SdfCircle2D Circle => circle;
 
         private void OnValidate()
         {
@@ -102,6 +104,25 @@ namespace SurfaceNets2D
                     return circle != null ? circle.Evaluate(point2D) : 0f;
                 default:
                     return 0f;
+            }
+        }
+
+        public Vector3 GetDistanceVectorToSurface(Vector3 worldPosition, float sdfValue)
+        {
+            Vector2 point2D = new Vector2(worldPosition.x, worldPosition.y);
+
+            switch (selectedShape)
+            {
+                case SdfShape.Circle:
+                    if (circle == null)
+                    {
+                        return Vector3.zero;
+                    }
+
+                    Vector2 vector2D = circle.GetVectorToSurface(point2D, sdfValue);
+                    return new Vector3(vector2D.x, vector2D.y, 0f);
+                default:
+                    return Vector3.zero;
             }
         }
     }
