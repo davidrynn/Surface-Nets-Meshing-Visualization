@@ -211,10 +211,12 @@ Step 2 – Grid Sample Points
 Visualize points at cell intersections
 
 Prepare color hooks for later sign visualization
-
+  
 Step 3 – Add SDF Shape (Circle)
 
-Implement SdfCircle2D
+Implement enum SdfShape with only one shape for now, circle.
+
+Implement circle shape for SdfShape circle
 
 Compute & store SDF values for each point
 
