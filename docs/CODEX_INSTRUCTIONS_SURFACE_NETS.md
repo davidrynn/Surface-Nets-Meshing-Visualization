@@ -51,7 +51,7 @@ Assume the Unity scene and project are being tested between steps and that the u
 
 Target environment:
 
-Unity: recent LTS version (e.g., 2022 or 2023 LTS), 2D capable.
+Unity: recent LTS version (e.g., 6.2+), 2D capable.
 
 Language: C#.
 
