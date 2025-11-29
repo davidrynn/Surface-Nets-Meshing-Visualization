@@ -1,311 +1,294 @@
-Surface Nets SDF Visualizer – Codex Guide
-1. Project Overview
+1. Purpose
 
-This repository is a Unity project whose goal is to create an interactive 2D visualization of:
+This project visualizes 2D Surface Nets meshing using a signed distance field (SDF) in Unity 6+.
+The visualization animates the full pipeline:
 
-A grid of sample points.
+2D sampling grid
 
-An implicit shape (via a signed distance field / SDF).
+SDF values per grid point
 
-Sign changes along grid edges (inside vs outside).
+Sign visualization (inside / outside)
 
-Interpolated surface vertices (surface nets logic) along those edges.
+SDF distance vectors
 
-A resulting mesh/contour formed from those vertices.
+Edge zero-crossing detection
 
-The visualization will be animated step-by-step to help experienced developers understand how SDF sampling and surface nets meshing work.
+Linear interpolation to create surface vertices
 
-Important: This project is for learning and visualization first, not for shipping game content. Clarity and correctness are higher priority than runtime performance or advanced optimizations.
+Mesh/contour generation
 
-2. Codex’s Role in This Project
+Optional camera animation & polish
 
-Codex acts as a coding assistant, not an autonomous architect.
+The primary goal is education and debug clarity, not game-ready performance.
 
-The human (David):
+2. Codex / AI Agent Role
 
-Decides the overall design and learning goals.
+Codex acts as a coding assistant that modifies this Unity project incrementally, always following:
 
-Controls the sequence of steps.
+2.1 Rules Codex MUST follow
 
-Runs Unity, tests changes, and reports back what worked or failed.
+Only modify the project according to this SPEC.
 
-Codex:
+Produce small, scoped changes for each step.
 
-Writes and refactors C# scripts, shaders (if needed later), and small editor utilities.
+Wait for explicit user confirmation before moving to the next step.
 
-Updates the Unity project structure incrementally.
+Never restructure the project unless requested.
 
-Explains what it changed in clear, concise terms.
+Never add third-party packages or Editor tooling unless requested.
 
-Waits for explicit instructions before moving to the next step or adding new features.
+Avoid unnecessary abstraction or complex patterns.
 
-Codex should:
+Use Unity 6+ APIs when relevant (e.g., modern rendering defaults).
 
-Prefer small, focused changes over large, sweeping rewrites.
+2.2 Interaction Model
 
-Treat each user request as a single step in a larger plan.
+Every change must be implemented as:
 
-Assume the Unity scene and project are being tested between steps and that the user will report issues.
+Summary of changes (2–5 bullet points)
 
-3. Tech Stack & Project Setup
+Modified or created scripts (show full files)
 
-Target environment:
+Scene instructions (how to test in Unity)
 
-Unity: recent LTS version (e.g., 6.2+), 2D capable.
+Stop and wait for confirmation
 
-Language: C#.
+3. Project Structure (Unity 6+)
+3.1 Folder Layout
 
-Render pipeline: Built-in or URP is acceptable; this project starts in 2D.
+Codex must place files only in the following structure:
 
-Platform: Desktop (editor play mode) only.
+Assets/
+  Scenes/
+    SurfaceNets2D.unity
+  Scripts/
+    Grid/
+      GridConfig.cs
+      GridRenderer2D.cs
+    SDF/
+      SdfShape2D.cs
+      SdfCircle2D.cs
+    Visualization/
+      SamplePointVisualizer.cs
+      SdfFieldVisualizer.cs
+      SurfaceNets2DVisualizer.cs
+docs/
+  SURFACE_NETS_SPEC.md
 
-When asked to create or modify the Unity project, Codex should:
+3.2 Naming Standards
 
-Assume a new Unity 2D project (or basic 3D with orthographic camera used as 2D).
+All classes in namespace:
+SurfaceNets2D
 
-Use default Unity input & camera unless explicitly asked to customize.
+Serialized fields use:
+[SerializeField] private Type name;
 
-Not introduce unnecessary assets or packages. Avoid:
+Public fields only when necessary for API clarity.
 
-Random extra Unity packages.
+4. Technical Requirements
+4.1 Grid
 
-Third-party libraries, unless explicitly requested.
+2D rectangular grid
 
-4. Step-by-Step Collaboration Workflow
+Configurable via GridConfig:
 
-The project will be built sequentially, with human confirmation at each step.
+gridWidth
 
-Key rule for Codex:
-Never proceed to the next conceptual step unless the user explicitly asks you to.
+gridHeight
 
-Planned High-Level Steps
+cellSize
 
-Codex will receive explicit prompts for each of these; do not skip ahead:
+Codex will visualize:
 
-Base project + grid visualization skeleton
+Optional grid lines
 
-Set up basic scene and scripts.
+Grid points (sample points)
 
-Visualize a simple grid (no points yet).
+4.2 SDF Implementation
 
-Grid with sample points
+Base class: SdfShape2D
 
-Draw sample points at grid intersections.
+First concrete implementation: SdfCircle2D
 
-Provide hooks for later annotation (colors, labels).
+SDF rule:
+d = length(p - center) - radius
 
-Implicit shape (SDF) inside the grid
+Sign meaning
 
-Implement an SDF for a simple shape (e.g., circle).
+d < 0 → inside
 
-Compute and store SDF values at each sample point.
+d == 0 → surface
 
-Sign visualization (inside vs outside)
+d > 0 → outside
 
-Color/label sample points based on sign of SDF.
+4.3 SDF Vectors
 
-Clearly show sign changes along edges.
+For selected sample points, Codex must:
 
-SDF vector visualization
+Compute SDF value
 
-For specific points, show an animated vector from sample point toward the surface (distance direction).
+Compute vector:
+direction = normalize(p – center)
+magnitude = abs(d)
 
-Interpolation along edges
+Visualize using a 2D line (LineRenderer or mesh line)
 
-Implement interpolation between two sample points with opposite sign.
+4.4 Surface Nets Interpolation
 
-Animate a marker sliding along the edge into its interpolated position (surface vertex).
+Given two grid points (p1, p2) with SDF values (d1, d2):
 
-Multiple vertices and mesh/contour
+t = d1 / (d1 - d2)
+v = lerp(p1, p2, t)
 
-Generalize to all relevant edges.
 
-Create and display a line/mesh representing the surface.
+Codex must use this exact formula.
 
-Optional polish
+4.5 Vertex Visualization
 
-Camera moves, timing, UI controls, tooltips, etc.
+A marker moves along the edge from p1 → interpolated point v
 
-For every step where Codex modifies code:
+Animation via coroutine
 
-Assume the user will:
+Timing controlled by inspector parameters
 
-Save changes.
+4.6 Mesh Construction
 
-Switch to Unity and hit Play.
+After vertices are placed:
 
-Verify the behavior visually.
+Create a polyline mesh (2D)
 
-Return with feedback or permission to proceed.
+Connect surface-net vertices inside cells
 
-Codex should:
+Keep mesh simple (no triangulation required)
 
-Treat “await my confirmation” literally:
-If the user hasn’t explicitly said “That works, continue to the next step,” Codex should stay within the current step’s scope (bug fixes, refactor, minor visual tweaks).
+5. Scene Requirements
+Scene file
 
-5. Coding & Project Structure Conventions
-5.1 Namespaces and Folder Structure
+SurfaceNets2D.unity
 
-Use a simple, consistent structure. Example:
+Minimum scene setup
 
-Assets/Scripts/Grid/
+Orthographic camera
 
-GridConfig.cs – simple configuration data (grid size, spacing, etc.).
+Clear 2D background
 
-GridRenderer2D.cs – draws lines and/or grid visuals.
+A GameObject named SurfaceNetsController with:
 
-Assets/Scripts/SDF/
+GridConfig
 
-SdfShape2D.cs – abstract/base class or interface for 2D SDFs.
+GridRenderer2D
 
-SdfCircle2D.cs – concrete implementation of a circle SDF.
+SdfFieldVisualizer
 
-Assets/Scripts/Visualization/
+SurfaceNets2DVisualizer
 
-SamplePointVisualizer.cs – handles sample point drawing and sign coloring.
+Testing
 
-SdfFieldVisualizer.cs – orchestrates SDF sampling over the grid.
+Codex must always provide clear testing instructions:
 
-SurfaceNets2DVisualizer.cs – handles edge interpolation and vertex placement.
+Play mode expectations
 
-Assets/Scenes/
+What should appear
 
-SurfaceNets2D.unity – primary visualization scene.
+Which objects are affected
 
-Namespace suggestion (or similar):
+6. Step-by-Step Development Plan
 
-namespace SurfaceNets2D
-{
-    // Classes here…
-}
+Codex must implement each step only when prompted.
 
+Step 1 – Base Grid Visualization
 
-Codex should avoid creating deeply nested namespaces unless specifically requested.
+Create GridConfig
 
-5.2 MonoBehaviour Style
+Create GridRenderer2D
 
-Prefer one responsibility per MonoBehaviour, roughly:
+Visualize grid lines and/or cell boundaries
 
-One script focused on data/config.
+No SDF, no shapes yet
 
-One script focused on rendering a visual aspect.
+Step 2 – Grid Sample Points
 
-One script focused on orchestration/flow.
+Visualize points at cell intersections
 
-Use [SerializeField] private fields instead of public fields for inspector references.
+Prepare color hooks for later sign visualization
 
-Use clear, descriptive names: gridSize, cellSize, samplePrefab, pointInsideColor, etc.
+Step 3 – Add SDF Shape (Circle)
 
-5.3 Animation Style
+Implement SdfCircle2D
 
-Animations can be implemented in simple, script-driven ways:
+Compute & store SDF values for each point
 
-Use coroutines to control timing and sequences.
+Step 4 – Visualize Sign
 
-For example:
+Color sample points according to d < 0 or d > 0
 
-Fade in grid.
+Highlight edges with sign changes
 
-After a delay, highlight one cell.
+Step 5 – SDF Vectors
 
-Animate SDF arrows into view.
+Animate SDF arrows on selected sample points
 
-Animate interpolation marker along an edge.
+Step 6 – Edge Interpolation
 
-Keep animation logic readable and separated from the math where possible.
+Compute zero-crossing on the demo edge
 
-Codex should default to clear, explicit sequences over clever but opaque animation systems.
+Animate interpolation marker
 
-6. Math & Conceptual Ground Rules
+Step 7 – Full Vertex Extraction
 
-Codex must respect the true math behind SDFs and surface nets:
+Compute all surface-net vertices across all relevant edges
 
-6.1 SDF Basics
+Step 8 – Mesh Visualization
 
-For a point p and a circle centered at c with radius r:
+Render simple 2D contour mesh from vertices
 
-float SignedDistanceCircle(Vector2 p, Vector2 c, float r)
-{
-    return (p - c).magnitude - r;
-}
+Add optional animation (fade-in, draw-in)
 
+Step 9 – Optional Polish (User Directed)
 
-Negative = inside.
+Camera motion
 
-Zero (approximately) = on the surface.
+UI toggles
 
-Positive = outside.
+Step-by-step playback
 
-Distance vectors:
+7. Unity 6+ Constraints
 
-Direction is usually (p - c).normalized (for a circle).
+Codex must assume:
 
-Length is abs(sd).
+Unity 6+ input & rendering defaults
 
-6.2 Edge Interpolation (Surface Nets-like Zero Crossing)
+Scriptable Render Pipeline not required unless explicitly requested
 
-For two sample points p1, p2 with SDF values d1, d2 and opposite signs:
+Use new Unity APIs when beneficial (e.g., LineRenderer improvements)
 
-float t = d1 / (d1 - d2);
-Vector2 v = Vector2.Lerp(p1, p2, t);
+No editor scripting unless asked
 
+8. What Codex MUST NOT DO
 
-Codex should:
+Do not skip ahead in the step plan
 
-Use this formula consistently.
+Do not reorganize folders
 
-Not “fake” interpolation positions unless explicitly asked to simplify visuals.
+Do not introduce new systems (ECS, URP, shader graphs, etc.)
 
-6.3 Clarity Over Performance
+Do not optimize prematurely
 
-Use simple loops over small grids (e.g., 8×8, 16×16).
+Do not generate meta files
 
-No need for jobs, burst, ECS, or complex optimization patterns here, unless explicitly requested.
+Do not overwrite scenes entirely—modify only as needed
 
-Prioritize code that is:
+9. Prompting Pattern (how Codex is invoked)
 
-Easy to read and explain.
+When using Codex, prompts must follow this pattern:
 
-Easy to modify for future teaching demos.
+Follow /docs/SURFACE_NETS_SPEC.md.
+Implement Step X.
+Stop after completing Step X and wait for confirmation.
 
-7. What Codex Should Not Do Unless Asked
 
-Codex should avoid:
+X = step number in Section 6.
 
-Changing Unity version or project-wide settings without request.
+Codex will read this SPEC automatically.
 
-Introducing unrelated systems (ECS, DOTS, networking, physics, etc.).
-
-Over-abstracting or introducing complex patterns (dependency injection frameworks, service locators, etc.) for this small visualization.
-
-Adding unrelated assets, sample packages, or UI frameworks.
-
-Rewriting large portions of the project by default.
-
-If Codex believes a large refactor is beneficial, it should:
-
-Explain why in a few clear sentences.
-
-Wait for explicit permission from the user.
-
-8. Communication Expectations
-
-When Codex responds to a prompt in this repo, it should:
-
-Summarize the intended change in 2–4 bullet points.
-
-Show the relevant code (new or modified files).
-
-Briefly explain how to test in Unity (e.g., “Open SurfaceNets2D.unity, press Play, you should see…”).
-
-Stop and let the user:
-
-Run the scene.
-
-Confirm or report issues.
-
-Decide the next step.
-
-Codex should not assume that changes “just work”; it should always defer to the user’s real-world Unity test before progressing.
-
-End of instructions.
+10. End of SPEC
