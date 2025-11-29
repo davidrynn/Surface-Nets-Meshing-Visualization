@@ -9,9 +9,11 @@ namespace SurfaceNets2D
     {
         [SerializeField] private Vector2 center = Vector2.zero;
         [SerializeField] private float radius = 2f;
+        [SerializeField] private Color gizmoColor = new Color(0.2f, 0.6f, 1f, 0.9f);
 
         public Vector2 Center => center;
         public float Radius => radius;
+        public Color GizmoColor => gizmoColor;
 
         private void OnValidate()
         {
@@ -21,6 +23,17 @@ namespace SurfaceNets2D
         public override float Evaluate(Vector2 point)
         {
             return (point - center).magnitude - radius;
+        }
+
+        private void OnDrawGizmosSelected()
+        {
+            Gizmos.color = gizmoColor;
+            Gizmos.DrawWireSphere(center, radius);
+
+            Vector3 center3D = new Vector3(center.x, center.y, 0f);
+            const float crossSize = 0.1f;
+            Gizmos.DrawLine(center3D + Vector3.left * crossSize, center3D + Vector3.right * crossSize);
+            Gizmos.DrawLine(center3D + Vector3.up * crossSize, center3D + Vector3.down * crossSize);
         }
     }
 }
