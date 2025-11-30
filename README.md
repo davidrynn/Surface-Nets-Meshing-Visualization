@@ -1,5 +1,15 @@
 Surface Nets SDF Visualizer (Unity 6+)
 
+** HUMAN PART **
+Hello fellow humans, if we haven't been exterminated by the time of your reading this. I, David, am writing this part - the rest has been written by AI, though with extensive prompting. 
+I have a "passion-esque" project ("passion" is a little strong) of writing a crafting game with focus on "fun" procedural generated infinite worlds. I feel like many crafting games these days are missing part of what makes them so much fun, and I want to focus on what that means to me. I'm well versed in iOS coding, but not at all in anything else. So I decided to use AI to help me. This has had some great advantages and a ton of disadvantages, as I'm able to do things I couldn't or would have to take a long time to learn, but at the same time I'm somewhat dependent on AI which consistently leads me down the wrong path.
+Fairly deep into the project, though I had multiple times laid out my plan for terrain destruction, AI told me that I'd need to use voxels for terrain manipulation beyond up and down. Not cool AI, as we'd been through this before. At that point, AI became useful again and we discussed using different methods of destruction. I don't want a minecraft clone, but, at the same time, want a low-poly aesthetic. So marching cubes or surface nets was the way to go. Surface nets eventually won out since it seems to be more efficient and more accurate at the same time. I wanted to understand how it works and found almost nothing online that explained, step-by-step.
+After some sample projects, I thought I'd use agentic-AI to create visualization that I could post and hopefully help someone else.
+I created a spec and posted it to Codex, so that I could work on other things while Codex creates this project.
+As per usual, what it did was incredible and incredibly flawed at the same time. Great for proof-of-concept, not useable as something to post.
+Currently in the process of debugging and will hopefully get something out. But at the same time, I don't want to spend what little time I have (with a wife and baby and full-time job) working on this instead of the main project... we'll see.
+** END HUMAN PART ***
+
 A step-by-step, visual explanation of Surface Nets meshing using Signed Distance Fields (SDFs) inside a 2D Unity 6+ project.
 This project is designed for developers who want to see how SDF sampling, sign changes, interpolation, and mesh reconstruction work in practice.
 
