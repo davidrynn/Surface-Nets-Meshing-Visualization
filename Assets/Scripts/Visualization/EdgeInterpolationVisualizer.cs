@@ -13,6 +13,7 @@ namespace SurfaceNets2D
         [SerializeField] private GridConfig config;
         [SerializeField] private SdfFieldVisualizer sdfField;
         [SerializeField] private SamplePointVisualizer samplePointVisualizer;
+        [SerializeField] private bool autoAssignReferences = true;
 
         [Header("Edge Selection")]
         [SerializeField] private Vector2Int startSample = new Vector2Int(3, 3);
@@ -34,23 +35,11 @@ namespace SurfaceNets2D
         [SerializeField] private AnimationCurve animationCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
 
         private float animationStartTime = -1f;
+        private bool triggerAnimationLastValue = false;
 
         private void OnValidate()
         {
-            if (config == null)
-            {
-                config = GetComponent<GridConfig>();
-            }
-
-            if (sdfField == null)
-            {
-                sdfField = GetComponent<SdfFieldVisualizer>();
-            }
-
-            if (samplePointVisualizer == null)
-            {
-                samplePointVisualizer = GetComponent<SamplePointVisualizer>();
-            }
+            TryAutoAssignReferences();
 
             edgeZOffset = Mathf.Max(0f, edgeZOffset);
             endpointRadius = Mathf.Max(0.001f, endpointRadius);
@@ -58,11 +47,12 @@ namespace SurfaceNets2D
             signEpsilon = Mathf.Max(0f, signEpsilon);
             animationDuration = Mathf.Max(0.01f, animationDuration);
 
-            if (triggerAnimation)
+            if (triggerAnimation && !triggerAnimationLastValue)
             {
                 RestartAnimation();
-                triggerAnimation = false;
             }
+
+            triggerAnimationLastValue = triggerAnimation;
         }
 
         private void OnEnable()
@@ -75,6 +65,8 @@ namespace SurfaceNets2D
 
         private void OnDrawGizmos()
         {
+            TryAutoAssignReferences();
+
             if (!TryGetEdgeData(out Vector3 start, out Vector3 end, out float d1, out float d2))
             {
                 return;
@@ -258,6 +250,35 @@ namespace SurfaceNets2D
             if (needsResample)
             {
                 sdfField.RecalculateField();
+            }
+        }
+
+        private void TryAutoAssignReferences()
+        {
+            if (!autoAssignReferences)
+            {
+                return;
+            }
+
+            if (config == null)
+            {
+                config = GetComponent<GridConfig>()
+                    ?? GetComponentInParent<GridConfig>()
+                    ?? FindObjectOfType<GridConfig>();
+            }
+
+            if (sdfField == null)
+            {
+                sdfField = GetComponent<SdfFieldVisualizer>()
+                    ?? GetComponentInParent<SdfFieldVisualizer>()
+                    ?? FindObjectOfType<SdfFieldVisualizer>();
+            }
+
+            if (samplePointVisualizer == null)
+            {
+                samplePointVisualizer = GetComponent<SamplePointVisualizer>()
+                    ?? GetComponentInParent<SamplePointVisualizer>()
+                    ?? FindObjectOfType<SamplePointVisualizer>();
             }
         }
     }
